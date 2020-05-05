@@ -1,13 +1,13 @@
 <template>
-  <hello-world />
+  <timer/>
 </template>
 
 <script>
-import HelloWorld from '@/components/HelloWorld.vue'
+import Timer from '@/components/Timer.vue'
 
 export default {
   name: 'App',
-  components: { HelloWorld }
+  components: { Timer }
 }
 </script>
 
