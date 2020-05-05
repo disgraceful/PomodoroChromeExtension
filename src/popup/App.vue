@@ -1,19 +1,21 @@
 <template>
-  <hello-world />
+  <v-app>
+    <timer />
+  </v-app>
 </template>
 
 <script>
-import HelloWorld from '@/components/HelloWorld.vue'
+import Timer from "@/components/Timer.vue";
 
 export default {
-  name: 'App',
-  components: { HelloWorld }
-}
+  name: "App",
+  components: { Timer }
+};
 </script>
 
 <style>
 html {
   width: 400px;
-  height: 400px;
+  height: auto;
 }
 </style>

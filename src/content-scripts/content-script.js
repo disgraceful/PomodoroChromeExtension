@@ -1,1 +1,1 @@
-console.log('Hello from the content-script')
+chrome.tabs.executeScript(tab.id, {});
