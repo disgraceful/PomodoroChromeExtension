@@ -1,14 +1,16 @@
 <template>
-  <timer/>
+  <v-app>
+    <timer />
+  </v-app>
 </template>
 
 <script>
-import Timer from '@/components/Timer.vue'
+import Timer from "@/components/Timer.vue";
 
 export default {
-  name: 'App',
+  name: "App",
   components: { Timer }
-}
+};
 </script>
 
 <style>
