@@ -1,24 +1,5 @@
-# pomodoro-extension
+## Chrome Extension For Pomodoro Timer
 
-## Project setup
-```
-npm install
-```
+Pomodoro allows you to split your working sessions in short 25-minute productive sprints followed by 5-minute breaks. This way you preserve your energy and focus, oppose to long sessions without any breaks. This extension implements different timers for you, automatically following working sessions by breaks, untill reset or paused.
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
 
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
