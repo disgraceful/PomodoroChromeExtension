@@ -13,27 +13,20 @@
         </v-col>
       </v-row>
       <div class="text-center">
-        <v-card-text class="display-2 pb-0">{{activeTime}}</v-card-text>
+        <v-card-text class="display-2 pb-0">{{updateTime}}</v-card-text>
         <v-card-text class="title font-weight-regular">{{status}}</v-card-text>
       </div>
       <v-row justify="center">
         <v-col class="text-center">
-          <v-btn
-            class="mr-5"
-            small
-            fab
-            depressed
-            elevation="3"
-            @click="isTimerActive = !isTimerActive"
-          >
+          <v-btn class="mr-5" small fab depressed elevation="3" @click="startTimer()">
             <v-icon v-text="isTimerActive? 'mdi-pause': 'mdi-play'"></v-icon>
           </v-btn>
 
-          <v-btn class="mr-5" small fab depressed elevation="3">
+          <v-btn class="mr-5" small fab depressed elevation="3" @click="resetTimer()">
             <v-icon>mdi-replay</v-icon>
           </v-btn>
 
-          <v-btn small fab depressed elevation="3">
+          <v-btn small fab depressed elevation="3" @click="finishTimer()">
             <v-icon>mdi-help</v-icon>
           </v-btn>
         </v-col>
@@ -43,21 +36,66 @@
 </template>
 
 <script>
+import timerMixin from "../mixins/timerMixin";
 export default {
   data() {
     return {
-      workingTimer: null,
       activeTime: 0,
       isTimerActive: false,
-      status: "working session #1"
+      status: 0, // 0=work, 1= break, 2 = longbreak;
+      defaultTimes: [25, 5, 10]
     };
   },
-  mounted() {
-    if (!this.workingTimer) {
-      this.workingTimer = setInterval(() => {
-        this.activeTime++;
-      }, 1000);
+  computed: {
+    getDefaultTimeinSeconds() {
+      return this.defaultTimes[this.status] * 60;
     }
+  },
+  methods: {
+    getBackgroundTime() {
+      chrome.runtime.sendMessage({ event: "get" }, response => {
+        this.isTimerActive = response.state == 1;
+        this.activeTime =
+          response.state === 0
+            ? this.getDefaultTimeinSeconds
+            : response.time | 0;
+      });
+    },
+    startTimer() {
+      this.isTimerActive = !this.isTimerActive;
+      if (this.isTimerActive) {
+        chrome.runtime.sendMessage({
+          event: "start",
+          time: this.getDefaultTimeinSeconds
+        });
+      } else {
+        chrome.runtime.sendMessage({ event: "pause" });
+      }
+    },
+    resetTimer() {
+      chrome.runtime.sendMessage({ event: "reset" });
+    },
+    finishTimer() {
+      chrome.runtime.sendMessage({ event: "set" });
+    }
+  },
+  mixins: [timerMixin],
+  created() {
+    this.getBackgroundTime();
+  },
+  mounted() {
+    chrome.runtime.sendMessage({ event: "reopen" });
+    chrome.runtime.onConnect.addListener(port => {
+      port.onMessage.addListener(request => {
+        console.log(request);
+        this.isTimerActive = request.state == 1;
+        this.activeTime = request.time;
+        // this.activeTime =
+        //   response.state === 0
+        //     ? this.getDefaultTimeinSeconds
+        //     : response.time | 0;
+      });
+    });
   }
 };
 </script>
