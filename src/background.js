@@ -23,25 +23,17 @@ let timerId = null;
 let initTime = new Date();
 let remainingTime = 0;
 let activeTime = 0;
-let state = 0;
+let state = 0; //0 = init, 1 = running, 2 = paused
 let interval = 1000;
 let port = null;
 
 let portConnected = false;
-
-// port.postMessage({ joke: "Knock knock" });
-// port.onMessage.addListener(function(msg) {
-//   if (msg.question == "Who's there?") port.postMessage({ answer: "Madame" });
-//   else if (msg.question == "Madame who?")
-//     port.postMessage({ answer: "Madame... Bovary" });
-// });
 
 function timerCycle() {
   activeTime++;
   console.log("time ", activeTime);
   if (portConnected) {
     port.postMessage(activeTime);
-    console.log("send");
   }
 }
 
@@ -73,5 +65,9 @@ function startConnection() {
   if (port) portConnected = true;
   port.onDisconnect.addListener(() => {
     portConnected = false;
+    const paused = state === 2 ? true : false;
+    chrome.storage.local.set({ time: activeTime, paused }, () =>
+      console.log("set", activeTime)
+    );
   });
 }
