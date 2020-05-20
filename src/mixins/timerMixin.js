@@ -1,4 +1,10 @@
 export default {
+  computed: {
+    updateTime() {
+      let { hours, minutes, seconds } = this.calcTime(this.activeTime);
+      return `${hours} : ${minutes} : ${seconds}`;
+    },
+  },
   methods: {
     calcTime(time) {
       const hours = Math.floor(time / 3600);
