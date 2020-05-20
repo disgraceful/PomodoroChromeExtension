@@ -52,6 +52,15 @@ export default {
     }
   },
   methods: {
+    getBackgroundTime() {
+      chrome.runtime.sendMessage({ event: "get" }, response => {
+        this.isTimerActive = response.state == 1;
+        this.activeTime =
+          response.state === 0
+            ? this.getDefaultTimeinSeconds
+            : response.time | 0;
+      });
+    },
     startTimer() {
       this.isTimerActive = !this.isTimerActive;
       if (this.isTimerActive) {
@@ -65,8 +74,6 @@ export default {
     },
     resetTimer() {
       chrome.runtime.sendMessage({ event: "reset" });
-      this.activeTime = this.getDefaultTimeinSeconds;
-      this.isTimerActive = false;
     },
     finishTimer() {
       chrome.runtime.sendMessage({ event: "set" });
@@ -74,27 +81,21 @@ export default {
   },
   mixins: [timerMixin],
   created() {
-    chrome.storage.local.get(["time", "state"], result => {
-      console.log(result);
-      this.isTimerActive = result.state == 1;
-      this.activeTime =
-        result.state === 0 ? this.getDefaultTimeinSeconds : result.time | 0;
-      console.log("created", this.activeTime, this.isTimerActive);
-    });
+    this.getBackgroundTime();
   },
   mounted() {
     chrome.runtime.sendMessage({ event: "reopen" });
     chrome.runtime.onConnect.addListener(port => {
       port.onMessage.addListener(request => {
-        if (!isNaN(request)) {
-          this.activeTime = request;
-          console.log(this.activeTime);
-        }
+        console.log(request);
+        this.isTimerActive = request.state == 1;
+        this.activeTime = request.time;
+        // this.activeTime =
+        //   response.state === 0
+        //     ? this.getDefaultTimeinSeconds
+        //     : response.time | 0;
       });
     });
-  },
-  destroyed() {
-    chrome.storage.local.clear();
   }
 };
 </script>

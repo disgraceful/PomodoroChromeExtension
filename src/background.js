@@ -5,17 +5,36 @@ let timerId = null;
 let initTime = new Date();
 let remainingTime = 0;
 let defaultTime = 0;
-let activeTime = 0;
-let state = 0; //0 = init, 1 = running, 2 = paused
 let interval = 1000;
 let port = null;
 let portConnected = false;
+
+const messenger = {
+  set: function(target, property, value) {
+    console.log("setter");
+    console.log(target, property, value);
+    target[property] = value;
+    if (portConnected) {
+      const msg = { time: timer.time, state: timer.state };
+      console.log(msg);
+      port.postMessage(msg);
+    }
+    return true;
+  },
+};
+const timer = new Proxy(
+  {
+    time: 0,
+    state: 0, //0 = init, 1 = running, 2 = paused
+  },
+  messenger
+);
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if (request.event === "start" && !timerId) {
     console.log("Starting timer");
     defaultTime = request.time;
-    activeTime = defaultTime;
+    timer.time = defaultTime;
     startTimer();
   } else if (request.event === "start") {
     console.log("Continuing timer");
@@ -25,65 +44,59 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     pauseTimer();
   } else if (request.event === "reopen") {
     console.log("Reopening connection");
-    startConnection();
+    openConnection();
   } else if (request.event === "reset") {
     console.log("Resetting timer");
     resetTimer();
   } else if (request.event === "set") {
     console.log("Finishing timer");
-    activeTime = 2;
+    timer.time = 2;
+  } else if (request.event === "get") {
+    sendResponse({ time: timer.time, state: timer.state });
   }
 });
 
 function timerCycle() {
-  activeTime--;
-  if (activeTime < 0) {
+  timer.time--;
+  if (timer.time < 0) {
     console.log("time's up");
     resetTimer();
   }
-  console.log("time ", activeTime);
-  if (portConnected) {
-    port.postMessage(activeTime);
-  }
+  console.log("time ", timer.time);
 }
 
 function pauseTimer() {
-  if (state != 1) return;
+  if (timer.state != 1) return;
   remainingTime = interval - (new Date() - initTime);
   window.clearInterval(timerId);
-  state = 2;
+  timer.state = 2;
 }
 
 function resumeTimer() {
-  if (state != 2) return;
+  if (timer.state != 2) return;
   window.setTimeout(function() {
     timerCycle();
     initTime = new Date();
     timerId = window.setInterval(timerCycle, interval);
-    state = 1;
+    timer.state = 1;
   }, remainingTime);
 }
 
 function startTimer() {
-  startConnection();
+  openConnection();
   timerId = setInterval(timerCycle, interval);
-  state = 1;
+  timer.state = 1;
 }
 
 function resetTimer() {
   window.clearInterval(timerId);
   timerId = null;
-  state = 0;
-  activeTime = defaultTime;
+  timer.state = 0;
+  timer.time = defaultTime;
 }
 
-function startConnection() {
+function openConnection() {
   port = chrome.runtime.connect({ name: "timer" });
   if (port) portConnected = true;
-  port.onDisconnect.addListener(() => {
-    portConnected = false;
-    chrome.storage.local.set({ time: activeTime, state }, () =>
-      console.log("set", activeTime, state)
-    );
-  });
+  port.onDisconnect.addListener(() => (portConnected = false));
 }
