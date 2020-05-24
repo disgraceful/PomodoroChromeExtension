@@ -10,6 +10,7 @@ let port = null;
 let portConnected = false;
 let defaultTimes = [25, 5, 10];
 let autoResume = true;
+let permissionStatus = false;
 
 const messenger = {
   set: function(target, property, value) {
@@ -36,6 +37,8 @@ const timer = new Proxy(
   },
   messenger
 );
+
+requestNotification();
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if (request.event === "start" && !timerId) {
@@ -126,13 +129,35 @@ function finishCycle() {
   if (timer.pomodoroStatus === 0) {
     timer.workCycle++;
     if (timer.workCycle >= 4) {
+      createNotification();
       timer.workCycle = 0;
       timer.pomodoroStatus = 2;
     } else {
+      createNotification();
       timer.pomodoroStatus = 1;
     }
   } else {
+    createNotification();
     timer.pomodoroStatus = 0;
   }
   startTimer(getDefaultTimeinSeconds());
+}
+
+function requestNotification() {
+  chrome.notifications.getPermissionLevel(function(permission) {
+    console.log(permission);
+    permissionStatus = permission === "granted";
+  });
+}
+
+function createNotification() {
+  chrome.notifications.create({
+    type: "basic",
+    title: "Pomodoro Timer",
+    message:
+      timer.pomodoroStatus === 0
+        ? `Work session ${timer.workCycle} is over, take a break!`
+        : "Break is over, get to work!",
+    iconUrl: "./icons/128.png",
+  });
 }
