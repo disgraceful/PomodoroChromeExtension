@@ -8,20 +8,22 @@ let defaultTime = 0;
 let interval = 1000;
 let port = null;
 let portConnected = false;
+let pomodoroStatus = 0; // 0=work, 1= break, 2 = longbreak;
+let defaultTimes = [25, 5, 10];
+let workCycle = 0;
+let autoResume = true;
 
 const messenger = {
   set: function(target, property, value) {
-    console.log("setter");
-    console.log(target, property, value);
     target[property] = value;
     if (portConnected) {
       const msg = { time: timer.time, state: timer.state };
-      console.log(msg);
       port.postMessage(msg);
     }
     return true;
   },
 };
+
 const timer = new Proxy(
   {
     time: 0,
@@ -33,9 +35,7 @@ const timer = new Proxy(
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if (request.event === "start" && !timerId) {
     console.log("Starting timer");
-    defaultTime = request.time;
-    timer.time = defaultTime;
-    startTimer();
+    startTimer(getDefaultTimeinSeconds());
   } else if (request.event === "start") {
     console.log("Continuing timer");
     resumeTimer();
@@ -52,7 +52,8 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     console.log("Finishing timer");
     timer.time = 2;
   } else if (request.event === "get") {
-    sendResponse({ time: timer.time, state: timer.state });
+    const time = timer.state === 0 ? getDefaultTimeinSeconds() : timer.time | 0;
+    sendResponse({ time: time, state: timer.state });
   }
 });
 
@@ -61,6 +62,9 @@ function timerCycle() {
   if (timer.time < 0) {
     console.log("time's up");
     resetTimer();
+    if (autoResume) {
+      finishCycle();
+    }
   }
   console.log("time ", timer.time);
 }
@@ -82,9 +86,11 @@ function resumeTimer() {
   }, remainingTime);
 }
 
-function startTimer() {
+function startTimer(time) {
+  defaultTime = time;
+  timer.time = time;
   openConnection();
-  timerId = setInterval(timerCycle, interval);
+  timerId = window.setInterval(timerCycle, interval);
   timer.state = 1;
 }
 
@@ -99,4 +105,23 @@ function openConnection() {
   port = chrome.runtime.connect({ name: "timer" });
   if (port) portConnected = true;
   port.onDisconnect.addListener(() => (portConnected = false));
+}
+
+function getDefaultTimeinSeconds() {
+  return defaultTimes[pomodoroStatus] * 60;
+}
+
+function finishCycle() {
+  if (pomodoroStatus === 0) {
+    workCycle++;
+    if (workCycle >= 4) {
+      workCycle = 0;
+      pomodoroStatus = 2;
+    } else {
+      pomodoroStatus = 1;
+    }
+  } else {
+    pomodoroStatus = 0;
+  }
+  startTimer(getDefaultTimeinSeconds());
 }
