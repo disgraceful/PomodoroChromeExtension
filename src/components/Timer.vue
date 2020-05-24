@@ -14,7 +14,7 @@
       </v-row>
       <div class="text-center">
         <v-card-text class="display-2 pb-0">{{updateTime}}</v-card-text>
-        <v-card-text class="title font-weight-regular"></v-card-text>
+        <v-card-text class="title font-weight-regular">{{getStatus}}</v-card-text>
       </div>
       <v-row justify="center">
         <v-col class="text-center">
@@ -41,10 +41,18 @@ export default {
   data() {
     return {
       activeTime: 0,
-      isTimerActive: false
+      isTimerActive: false,
+      status: 0,
+      cycle: 0
     };
   },
-  computed: {},
+  computed: {
+    getStatus() {
+      return this.status === 0
+        ? `Working session #${this.cycle + 1}`
+        : "Resting";
+    }
+  },
   methods: {
     getBackgroundTime() {
       chrome.runtime.sendMessage({ event: "get" }, response => {
@@ -81,6 +89,8 @@ export default {
         console.log(request);
         this.isTimerActive = request.state == 1;
         this.activeTime = request.time;
+        this.status = request.status;
+        this.cycle = request.cycle;
       });
     });
   }

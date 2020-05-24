@@ -8,16 +8,19 @@ let defaultTime = 0;
 let interval = 1000;
 let port = null;
 let portConnected = false;
-let pomodoroStatus = 0; // 0=work, 1= break, 2 = longbreak;
 let defaultTimes = [25, 5, 10];
-let workCycle = 0;
 let autoResume = true;
 
 const messenger = {
   set: function(target, property, value) {
     target[property] = value;
     if (portConnected) {
-      const msg = { time: timer.time, state: timer.state };
+      const msg = {
+        time: timer.time,
+        state: timer.state,
+        status: timer.pomodoroStatus,
+        cycle: timer.workCycle,
+      };
       port.postMessage(msg);
     }
     return true;
@@ -27,7 +30,9 @@ const messenger = {
 const timer = new Proxy(
   {
     time: 0,
-    state: 0, //0 = init, 1 = running, 2 = paused
+    state: 0, //0 = init, 1 = running, 2 = paused,
+    pomodoroStatus: 0, // 0=work, 1= break, 2 = longbreak;
+    workCycle: 0,
   },
   messenger
 );
@@ -108,20 +113,20 @@ function openConnection() {
 }
 
 function getDefaultTimeinSeconds() {
-  return defaultTimes[pomodoroStatus] * 60;
+  return defaultTimes[timer.pomodoroStatus] * 60;
 }
 
 function finishCycle() {
-  if (pomodoroStatus === 0) {
-    workCycle++;
-    if (workCycle >= 4) {
-      workCycle = 0;
-      pomodoroStatus = 2;
+  if (timer.pomodoroStatus === 0) {
+    timer.workCycle++;
+    if (timer.workCycle >= 4) {
+      timer.workCycle = 0;
+      timer.pomodoroStatus = 2;
     } else {
-      pomodoroStatus = 1;
+      timer.pomodoroStatus = 1;
     }
   } else {
-    pomodoroStatus = 0;
+    timer.pomodoroStatus = 0;
   }
   startTimer(getDefaultTimeinSeconds());
 }
