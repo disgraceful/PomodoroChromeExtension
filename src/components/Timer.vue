@@ -3,13 +3,13 @@
     <v-container class="pb-5">
       <v-row justify="center">
         <v-col cols="auto">
-          <v-btn>Work</v-btn>
+          <v-btn @click="setStatus(0)">Work</v-btn>
         </v-col>
         <v-col cols="auto">
-          <v-btn>Break</v-btn>
+          <v-btn @click="setStatus(1)">Break</v-btn>
         </v-col>
         <v-col cols="auto">
-          <v-btn>Long Break</v-btn>
+          <v-btn @click="setStatus(2)">Long Break</v-btn>
         </v-col>
       </v-row>
       <div class="text-center">
@@ -76,6 +76,9 @@ export default {
     },
     finishTimer() {
       chrome.runtime.sendMessage({ event: "set" });
+    },
+    setStatus(status) {
+      chrome.runtime.sendMessage({ event: "status", status: status });
     }
   },
   mixins: [timerMixin],

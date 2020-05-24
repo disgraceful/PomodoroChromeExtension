@@ -59,6 +59,12 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   } else if (request.event === "get") {
     const time = timer.state === 0 ? getDefaultTimeinSeconds() : timer.time | 0;
     sendResponse({ time: time, state: timer.state });
+  } else if (request.event === "status" && !isNaN(request.status)) {
+    timer.pomodoroStatus = request.status;
+    timer.workCycle = 0;
+    defaultTime = getDefaultTimeinSeconds();
+    timer.time = getDefaultTimeinSeconds();
+    resetTimer();
   }
 });
 
