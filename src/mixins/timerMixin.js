@@ -16,6 +16,12 @@ export default {
         seconds: formatTime(seconds),
       };
     },
+    calcTimeMinutes(time) {
+      return formatTime(Math.floor(time / 60));
+    },
+    calcTimeSeconds(time) {
+      return formatTime(time % 60);
+    },
   },
 };
 
