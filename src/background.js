@@ -151,13 +151,15 @@ function requestNotification() {
 }
 
 function createNotification() {
-  chrome.notifications.create({
-    type: "basic",
-    title: "Pomodoro Timer",
-    message:
-      timer.pomodoroStatus === 0
-        ? `Work session ${timer.workCycle} is over, take a break!`
-        : "Break is over, get to work!",
-    iconUrl: "./icons/128.png",
-  });
+  if (permissionStatus) {
+    chrome.notifications.create({
+      type: "basic",
+      title: "Pomodoro Timer",
+      message:
+        timer.pomodoroStatus === 0
+          ? `Work session ${timer.workCycle} is over, take a break!`
+          : "Break is over, get to work!",
+      iconUrl: "./icons/128.png",
+    });
+  }
 }

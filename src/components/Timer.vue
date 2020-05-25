@@ -25,9 +25,11 @@
           <v-btn class="mr-5" small fab depressed elevation="3" @click="resetTimer()">
             <v-icon>mdi-replay</v-icon>
           </v-btn>
-
+          <v-btn class="mr-5" small fab depressed elevation="3" @click="openOptions()">
+            <v-icon>mdi-cogs</v-icon>
+          </v-btn>
           <v-btn small fab depressed elevation="3" @click="finishTimer()">
-            <v-icon>mdi-help</v-icon>
+            <v-icon>mdi-fast-forward</v-icon>
           </v-btn>
         </v-col>
       </v-row>
@@ -79,6 +81,9 @@ export default {
     },
     setStatus(status) {
       chrome.runtime.sendMessage({ event: "status", status: status });
+    },
+    openOptions() {
+      chrome.runtime.openOptionsPage();
     }
   },
   mixins: [timerMixin],
