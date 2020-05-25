@@ -21,9 +21,9 @@
           <label>Work Time</label>
         </v-col>
       </v-row>
-      <input id="break" v-model="selectedTimes[1]" />
+      <input id="break" />
       <label for="break">Break</label>
-      <input id="longbreak" v-model="selectedTimes[2]" />
+      <input id="longbreak" />
       <label for="longbreak">Long break</label>
       <v-row>
         <v-col>
@@ -50,8 +50,14 @@ export default {
         minutes: 0,
         seconds: 0
       },
-
-      selectedTimes: [],
+      break: {
+        minutes: 0,
+        seconds: 0
+      },
+      long: {
+        minutes: 0,
+        seconds: 0
+      },
       inputTempValue: 0
     };
   },
@@ -61,35 +67,41 @@ export default {
         this.inputTempValue = event.target.value;
       }
     },
+    minutesToSecs(minutes, seconds) {
+      return minutes * 60 + seconds;
+    },
     retrieve() {
       chrome.storage.sync.get("settings", result => {
-        console.log(result);
+        let workTime, breakTime, longTime;
         if (result.settings) {
-          this.selectedTimes = new Array(
-            result.settings.work,
-            result.settings.break,
-            result.settings.lbreak
-          );
-          this.work.minutes = this.calcTimeMinutes(result.settings.work);
-          this.work.seconds = this.calcTimeMinutes(result.settings.work);
-          console.log(this.selectedTimes);
+          workTime = this.calcTimeMinutes(result.settings.work);
+          breakTime = this.calcTimeMinutes(result.settings.break);
+          longTime = this.calcTimeMinutes(result.settings.long);
         } else {
-          this.selectedTimes = this.defaultTimes;
+          workTime = this.calcTimeMinutes(this.defaultTimes[0]);
+          breakTime = this.calcTimeMinutes(this.defaultTimes[1]);
+          longTime = this.calcTimeMinutes(this.defaultTimes[2]);
         }
+
+        this.work.minutes = workTime.minutes;
+        this.work.seconds = workTime.seconds;
+        this.break.minutes = breakTime.minutes;
+        this.break.seconds = breakTime.seconds;
+        this.long.minutes = longTime.minutes;
+        this.long.seconds = longTime.seconds;
       });
     },
     save() {
       chrome.storage.sync.set({
         settings: {
-          work: this.selectedTimes[0],
-          break: this.selectedTimes[1],
-          lbreak: this.selectedTimes[2]
+          work: this.minutesToSecs(this.work.minutes, this.work.seconds),
+          break: this.minutesToSecs(this.break.minutes, this.break.seconds),
+          long: this.minutesToSecs(this.long.minutes, this.long.seconds)
         }
       });
     },
     reset() {
       chrome.storage.sync.clear();
-      this.selectedTimes = this.defaultTimes;
       this.save();
     }
   },

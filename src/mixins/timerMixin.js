@@ -1,12 +1,12 @@
 export default {
   computed: {
     updateTime() {
-      let { hours, minutes, seconds } = this.calcTime(this.activeTime);
+      let { hours, minutes, seconds } = this.calcTimeHours(this.activeTime);
       return `${hours} : ${minutes} : ${seconds}`;
     },
   },
   methods: {
-    calcTime(time) {
+    calcTimeHours(time) {
       const hours = Math.floor(time / 3600);
       const minutes = Math.floor((time % 3600) / 60);
       const seconds = time % 60;
@@ -17,10 +17,10 @@ export default {
       };
     },
     calcTimeMinutes(time) {
-      return formatTime(Math.floor(time / 60));
-    },
-    calcTimeSeconds(time) {
-      return formatTime(time % 60);
+      return {
+        minutes: formatTime(Math.floor(time / 60)),
+        seconds: formatTime(time % 60),
+      };
     },
   },
 };
