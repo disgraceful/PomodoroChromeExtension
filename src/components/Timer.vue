@@ -58,7 +58,7 @@ export default {
   methods: {
     getBackgroundTime() {
       chrome.runtime.sendMessage({ event: "get" }, response => {
-        console.log(response);
+        console.log("time", response);
         this.isTimerActive = response.state == 1;
         this.activeTime = response.time;
       });
@@ -84,6 +84,7 @@ export default {
     },
     openOptions() {
       chrome.runtime.openOptionsPage();
+      this.resetTimer();
     }
   },
   mixins: [timerMixin],

@@ -183,6 +183,7 @@ export default {
           notifications: this.notifications
         }
       });
+      chrome.runtime.sendMessage({ event: "saved" });
     },
     reset() {
       chrome.storage.sync.clear();

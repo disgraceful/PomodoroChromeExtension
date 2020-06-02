@@ -1,5 +1,6 @@
 chrome.runtime.onInstalled.addListener(function(request, sender, sendResponse) {
   console.log("Hello from the background");
+  //show help page
 });
 let timerId = null;
 let initTime = new Date();
@@ -8,9 +9,12 @@ let defaultTime = 0;
 let interval = 1000;
 let port = null;
 let portConnected = false;
-let defaultTimes = [25, 5, 10];
+
+let times = [25, 5, 10];
+let workCycleLimit = 0;
 let autoResume = true;
 let permissionStatus = false;
+let notificationTurned = false;
 
 const messenger = {
   set: function(target, property, value) {
@@ -38,6 +42,7 @@ const timer = new Proxy(
   messenger
 );
 
+retrieveUserSettings();
 requestNotification();
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
@@ -61,6 +66,13 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     timer.time = 2;
   } else if (request.event === "get") {
     const time = timer.state === 0 ? getDefaultTimeinSeconds() : timer.time | 0;
+    console.log(
+      "TIME",
+      time,
+      timer.state,
+      timer.time,
+      getDefaultTimeinSeconds()
+    );
     sendResponse({ time: time, state: timer.state });
   } else if (request.event === "status" && !isNaN(request.status)) {
     timer.pomodoroStatus = request.status;
@@ -68,6 +80,8 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     defaultTime = getDefaultTimeinSeconds();
     timer.time = getDefaultTimeinSeconds();
     resetTimer();
+  } else if (request.event === "saved") {
+    retrieveUserSettings();
   }
 });
 
@@ -112,7 +126,7 @@ function resetTimer() {
   window.clearInterval(timerId);
   timerId = null;
   timer.state = 0;
-  timer.time = defaultTime;
+  timer.time = getDefaultTimeinSeconds();
 }
 
 function openConnection() {
@@ -122,13 +136,13 @@ function openConnection() {
 }
 
 function getDefaultTimeinSeconds() {
-  return defaultTimes[timer.pomodoroStatus] * 60;
+  return times[timer.pomodoroStatus];
 }
 
 function finishCycle() {
   if (timer.pomodoroStatus === 0) {
     timer.workCycle++;
-    if (timer.workCycle >= 4) {
+    if (timer.workCycle >= workCycleLimit) {
       createNotification();
       timer.workCycle = 0;
       timer.pomodoroStatus = 2;
@@ -145,8 +159,7 @@ function finishCycle() {
 
 function requestNotification() {
   chrome.notifications.getPermissionLevel(function(permission) {
-    console.log(permission);
-    permissionStatus = permission === "granted";
+    permissionStatus = permission === "granted" && notificationTurned;
   });
 }
 
@@ -162,4 +175,17 @@ function createNotification() {
       iconUrl: "./icons/128.png",
     });
   }
+}
+
+function retrieveUserSettings() {
+  chrome.storage.sync.get("settings", function(result) {
+    console.log(result);
+    const settings = result.settings;
+    times = settings
+      ? [settings.work, settings.rest, settings.long]
+      : [25 * 60, 5 * 60, 10 * 60];
+    workCycleLimit = settings.workCycle | 4;
+    autoResume = settings.autoResume | true;
+    notificationTurned = settings.notifications | false;
+  });
 }
