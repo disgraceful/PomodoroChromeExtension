@@ -5,5 +5,5 @@ import vuetify from "../plugins/vuetify";
 new Vue({
   el: "#app",
   vuetify,
-  render: h => h(App)
-})
+  render: (h) => h(App),
+});
