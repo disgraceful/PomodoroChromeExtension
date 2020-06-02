@@ -61,6 +61,7 @@ export default {
         console.log("time", response);
         this.isTimerActive = response.state == 1;
         this.activeTime = response.time;
+        this.status = response.status;
       });
     },
     startTimer() {
