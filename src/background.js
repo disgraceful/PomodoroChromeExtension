@@ -1,11 +1,9 @@
 chrome.runtime.onInstalled.addListener(function(request, sender, sendResponse) {
-  console.log("Hello from the background");
-  //show help page
+  requestNotification();
 });
 let timerId = null;
 let initTime = new Date();
 let remainingTime = 0;
-let defaultTime = 0;
 let interval = 1000;
 let port = null;
 let portConnected = false;
@@ -74,7 +72,6 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   } else if (request.event === "status" && !isNaN(request.status)) {
     timer.pomodoroStatus = request.status;
     timer.workCycle = 0;
-    defaultTime = getDefaultTimeinSeconds();
     timer.time = getDefaultTimeinSeconds();
     resetTimer();
   } else if (request.event === "saved") {
@@ -112,7 +109,6 @@ function resumeTimer() {
 }
 
 function startTimer(time) {
-  defaultTime = time;
   timer.time = time;
   openConnection();
   timerId = window.setInterval(timerCycle, interval);
@@ -183,6 +179,6 @@ function retrieveUserSettings() {
       : [25 * 60, 5 * 60, 10 * 60];
     workCycleLimit = settings.workCycle | 4;
     autoResume = settings.autoResume | true;
-    notificationTurned = settings.notifications | false;
+    notificationTurned = settings.notifications | true;
   });
 }
