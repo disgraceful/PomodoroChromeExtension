@@ -1,21 +1,21 @@
 <template>
   <v-app>
-    <timer />
+    <pt-timer />
   </v-app>
 </template>
 
 <script>
-import Timer from "@/components/Timer.vue";
+import TimerView from "@/components/TimerView.vue";
 
 export default {
   name: "App",
-  components: { Timer }
+  components: { "pt-timer": TimerView }
 };
 </script>
 
 <style>
 html {
-  width: 400px;
+  width: 350px;
   height: auto;
 }
 </style>
