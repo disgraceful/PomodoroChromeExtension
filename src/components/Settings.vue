@@ -1,6 +1,6 @@
 <template>
   <v-card>
-    <v-container class="text-center">
+    <v-container class="pt-0 text-center">
       <v-row justify="center">
         <input
           type="text"
@@ -44,7 +44,7 @@
         <label class="title font-weight-light">break</label>
       </v-row>
       <v-row justify="center" align="baseline">
-        <div style="margin-left:40px">
+        <div style="margin-left:40px" class="pb-1">
           <input
             type="text"
             class="small-input"
@@ -69,37 +69,37 @@
       </v-row>
       <hr />
       <v-row align="baseline">
-        <v-col cols="auto" class="pb-0">
+        <v-col cols="auto" class="py-1 px-5">
           <span class="title font-weight-light">Long break every</span>
           <input type="text" class="small-input text-center" v-model="workCycle" maxlength="1" />
           <span class="title font-weight-light">sessions</span>
         </v-col>
       </v-row>
-      <v-row align="baseline">
-        <v-col cols="auto" class="pb-0">
+      <v-row align="center">
+        <v-col cols="auto" class="py-1 pl-5">
           <span class="title font-weight-light">Auto-resume timer:</span>
         </v-col>
         <v-col class="pa-0">
-          <v-checkbox v-model="autoResume" hide-details color="#333"></v-checkbox>
+          <v-checkbox class="ma-0" v-model="autoResume" hide-details color="#333"></v-checkbox>
         </v-col>
       </v-row>
-      <v-row align="baseline">
-        <v-col cols="auto" class="pb-0">
+      <v-row align="center" class="mb-1">
+        <v-col cols="auto" class="py-1 pl-5">
           <span class="title font-weight-light">Turn notifications:</span>
         </v-col>
         <v-col cols="auto" class="pa-0">
-          <v-checkbox v-model="notifications" hide-details color="#333"></v-checkbox>
+          <v-checkbox class="ma-0" v-model="notifications" hide-details color="#333"></v-checkbox>
         </v-col>
       </v-row>
       <hr />
       <v-row>
-        <v-col>
-          <v-btn @click="save()">Save</v-btn>
+        <v-col class="py-4">
+          <v-btn large elevation="2" width="110" color="#FFA726" @click="save()">Save</v-btn>
         </v-col>
       </v-row>
       <v-row>
-        <v-col>
-          <v-btn @click="reset()">Reset</v-btn>
+        <v-col class="py-2">
+          <v-btn elevation="2" @click="reset()">Reset</v-btn>
         </v-col>
       </v-row>
     </v-container>
@@ -112,7 +112,7 @@ export default {
   mixins: [timerMixin],
   data() {
     return {
-      defaultTimes: [20.5 * 60, 5 * 60, 10 * 60],
+      defaultTimes: [25 * 60, 5 * 60, 10 * 60],
       defaultSettings: { workCycle: 4, autoResume: true, notifications: true },
       work: {
         minutes: 0,
@@ -129,25 +129,26 @@ export default {
       inputTempValue: 0,
       minutesValidSymbolLimit: 1,
       secondsValidSymbolLimit: 2,
-      workCycle: 4,
+      workCycle: 0,
       autoResume: true,
       notifications: true
     };
   },
   methods: {
     inputHandler(event, limit) {
-      console.dir(event.target);
       if (!isNaN(event.target.value) && event.target.value.length >= limit) {
         this.inputTempValue = event.target.value;
       }
     },
+
     minutesToSecs(minutes, seconds) {
       return parseInt(minutes) * 60 + parseInt(seconds);
     },
+
     retrieve() {
       chrome.storage.sync.get("settings", result => {
         let workTime, breakTime, longTime;
-        console.log(result);
+        console.log("result", result);
         if (result.settings) {
           workTime = this.calcTimeMinutes(result.settings.work);
           breakTime = this.calcTimeMinutes(result.settings.rest);
@@ -164,14 +165,18 @@ export default {
         this.rest.seconds = breakTime.seconds;
         this.long.minutes = longTime.minutes;
         this.long.seconds = longTime.seconds;
-        this.workCycle =
-          result.settings.workCycle | this.defaultSettings.workCycle;
-        this.autoResume =
-          result.settings.autoResume | this.defaultSettings.autoResume;
-        this.notifications =
-          result.settings.notifications | this.defaultSettings.notifications;
+        this.workCycle = result.settings
+          ? result.settings.workCycle
+          : this.defaultSettings.workCycle;
+        this.autoResume = result.settings
+          ? result.settings.autoResume
+          : this.defaultSettings.autoResume;
+        this.notifications = result.settings
+          ? result.settings.notifications
+          : this.defaultSettings.notifications;
       });
     },
+
     save() {
       chrome.storage.sync.set({
         settings: {
@@ -185,11 +190,13 @@ export default {
       });
       chrome.runtime.sendMessage({ event: "saved" });
     },
+
     reset() {
       chrome.storage.sync.clear();
       this.retrieve();
     }
   },
+
   created() {
     this.retrieve();
   }
@@ -229,10 +236,6 @@ input:focus {
 
 .small-input + #semi {
   font-size: 28px;
-}
-
-.v-input--selection-controls {
-  margin-top: -5px !important;
 }
 </style>
 
