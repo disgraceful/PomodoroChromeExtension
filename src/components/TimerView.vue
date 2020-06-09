@@ -95,6 +95,7 @@
 <script>
 import timerMixin from "../mixins/timerMixin";
 export default {
+  mixins: [timerMixin],
   data() {
     return {
       activeTime: 0,
@@ -112,53 +113,49 @@ export default {
     }
   },
   methods: {
+    startTimer() {
+      this.isTimerActive = !this.isTimerActive;
+      chrome.runtime.sendMessage({
+        event: this.isTimerActive ? "start" : "pause"
+      });
+    },
+
+    resetTimer() {
+      chrome.runtime.sendMessage({ event: "reset" });
+    },
+
+    setStatus(status) {
+      chrome.runtime.sendMessage({ event: "status", status });
+    },
+
+    openOptions() {
+      chrome.runtime.openOptionsPage();
+      this.resetTimer();
+    },
+
     getBackgroundTime() {
       chrome.runtime.sendMessage({ event: "get" }, response => {
-        console.log("time", response);
         this.isTimerActive = response.state == 1;
         this.activeTime = response.time;
         this.status = response.status;
       });
-    },
-    startTimer() {
-      this.isTimerActive = !this.isTimerActive;
-      if (this.isTimerActive) {
-        chrome.runtime.sendMessage({
-          event: "start"
-        });
-      } else {
-        chrome.runtime.sendMessage({ event: "pause" });
-      }
-    },
-    resetTimer() {
-      chrome.runtime.sendMessage({ event: "reset" });
-    },
-    finishTimer() {
-      chrome.runtime.sendMessage({ event: "set" });
-    },
-    setStatus(status) {
-      chrome.runtime.sendMessage({ event: "status", status: status });
-    },
-    openOptions() {
-      chrome.runtime.openOptionsPage();
-      this.resetTimer();
     }
   },
-  mixins: [timerMixin],
+
   created() {
     this.getBackgroundTime();
-  },
-  mounted() {
     chrome.runtime.sendMessage({ event: "reopen" });
     chrome.runtime.onConnect.addListener(port => {
       port.onMessage.addListener(request => {
-        console.log(request);
         this.isTimerActive = request.state == 1;
         this.activeTime = request.time;
         this.status = request.status;
         this.cycle = request.cycle;
       });
     });
+  },
+
+  mounted() {
     this.fabHidden = false;
   }
 };
