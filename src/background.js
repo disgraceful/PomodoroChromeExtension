@@ -42,7 +42,6 @@ const timer = new Proxy(
 
 retrieveUserSettings();
 requestNotification();
-console.log(notif);
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if (request.event === "start" && !timerId) {
