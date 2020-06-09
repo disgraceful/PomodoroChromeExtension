@@ -1,6 +1,6 @@
 <template>
   <v-card tile>
-    <v-toolbar color="#FFA726">
+    <v-toolbar color="#FFA726" elevation="2">
       <v-tabs background-color="transparent" grow color="#444" v-model="status">
         <v-tab @click="setStatus(0)">Work</v-tab>
         <v-tab @click="setStatus(1)">Break</v-tab>
@@ -9,18 +9,38 @@
     </v-toolbar>
 
     <v-container class="pb-3">
-      <div class="text-center">
-        <v-card-text class="display-2 font-weight-light pb-0">{{updateTime}}</v-card-text>
-        <v-card-text class="title font-weight-light pa-2">{{getStatus}}</v-card-text>
-      </div>
+      <v-tabs-items v-model="status">
+        <v-tab-item v-for="i in 3" :key="i">
+          <div class="text-center">
+            <v-fade-transition leave-absolute>
+              <v-card-text
+                :key="`time-${activeTime}`"
+                class="display-2 font-weight-light pb-0"
+              >{{updateTime}}</v-card-text>
+            </v-fade-transition>
+            <v-card-text class="title font-weight-light pa-2">{{getStatus}}</v-card-text>
+          </div>
+        </v-tab-item>
+      </v-tabs-items>
 
       <v-row justify="center">
         <v-col cols="auto" class="px-3" style="position:relative">
           <v-tooltip top content-class="tooltip">
             <template v-slot:activator="{on}">
-              <v-btn small fab depressed elevation="3" color="#FFF" v-on="on" @click="startTimer()">
-                <v-icon v-text="isTimerActive? 'mdi-pause': 'mdi-play'"></v-icon>
-              </v-btn>
+              <v-fab-transition>
+                <v-btn
+                  v-show="!fabHidden"
+                  small
+                  fab
+                  depressed
+                  elevation="3"
+                  color="#FFF"
+                  v-on="on"
+                  @click="startTimer()"
+                >
+                  <v-icon v-text="isTimerActive? 'mdi-pause': 'mdi-play'"></v-icon>
+                </v-btn>
+              </v-fab-transition>
             </template>
             <span v-text="isTimerActive?'Pause': 'Start'"></span>
           </v-tooltip>
@@ -28,9 +48,20 @@
         <v-col cols="auto" class="px-3">
           <v-tooltip top content-class="tooltip">
             <template v-slot:activator="{on}">
-              <v-btn small fab depressed elevation="3" color="#FFF" v-on="on" @click="resetTimer()">
-                <v-icon>mdi-replay</v-icon>
-              </v-btn>
+              <v-fab-transition>
+                <v-btn
+                  v-show="!fabHidden"
+                  small
+                  fab
+                  depressed
+                  elevation="3"
+                  color="#FFF"
+                  v-on="on"
+                  @click="resetTimer()"
+                >
+                  <v-icon>mdi-replay</v-icon>
+                </v-btn>
+              </v-fab-transition>
             </template>
             <span>Reset</span>
           </v-tooltip>
@@ -38,17 +69,20 @@
         <v-col cols="auto" class="px-3">
           <v-tooltip top content-class="tooltip">
             <template v-slot:activator="{on}">
-              <v-btn
-                small
-                fab
-                depressed
-                elevation="3"
-                color="#FFF"
-                v-on="on"
-                @click="openOptions()"
-              >
-                <v-icon>mdi-cogs</v-icon>
-              </v-btn>
+              <v-fab-transition>
+                <v-btn
+                  v-show="!fabHidden"
+                  small
+                  fab
+                  depressed
+                  elevation="3"
+                  color="#FFF"
+                  v-on="on"
+                  @click="openOptions()"
+                >
+                  <v-icon>mdi-cogs</v-icon>
+                </v-btn>
+              </v-fab-transition>
             </template>
             <span>Options</span>
           </v-tooltip>
@@ -66,7 +100,8 @@ export default {
       activeTime: 0,
       isTimerActive: false,
       status: 0,
-      cycle: 0
+      cycle: 0,
+      fabHidden: true
     };
   },
   computed: {
@@ -124,6 +159,7 @@ export default {
         this.cycle = request.cycle;
       });
     });
+    this.fabHidden = false;
   }
 };
 </script>
