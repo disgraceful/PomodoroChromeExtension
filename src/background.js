@@ -8,7 +8,7 @@ let interval = 1000;
 let port = null;
 let portConnected = false;
 
-let times = [25, 5, 10];
+let times = [];
 let workCycleLimit = 0;
 let autoResume = true;
 let permissionStatus = false;
@@ -42,6 +42,7 @@ const timer = new Proxy(
 
 retrieveUserSettings();
 requestNotification();
+console.log(notif);
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if (request.event === "start" && !timerId) {
@@ -59,9 +60,6 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   } else if (request.event === "reset") {
     console.log("Resetting timer");
     resetTimer();
-  } else if (request.event === "set") {
-    console.log("Finishing timer");
-    timer.time = 2;
   } else if (request.event === "get") {
     const time = timer.state === 0 ? getDefaultTimeinSeconds() : timer.time | 0;
     sendResponse({
@@ -79,16 +77,11 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   }
 });
 
-function timerCycle() {
-  timer.time--;
-  if (timer.time < 0) {
-    console.log("time's up");
-    resetTimer();
-    if (autoResume) {
-      finishCycle();
-    }
-  }
-  console.log("time ", timer.time);
+function startTimer(time) {
+  timer.time = time;
+  openConnection();
+  timerId = window.setInterval(timerCycle, interval);
+  timer.state = 1;
 }
 
 function pauseTimer() {
@@ -108,13 +101,6 @@ function resumeTimer() {
   }, remainingTime);
 }
 
-function startTimer(time) {
-  timer.time = time;
-  openConnection();
-  timerId = window.setInterval(timerCycle, interval);
-  timer.state = 1;
-}
-
 function resetTimer() {
   window.clearInterval(timerId);
   timerId = null;
@@ -122,14 +108,14 @@ function resetTimer() {
   timer.time = getDefaultTimeinSeconds();
 }
 
-function openConnection() {
-  port = chrome.runtime.connect({ name: "timer" });
-  if (port) portConnected = true;
-  port.onDisconnect.addListener(() => (portConnected = false));
-}
-
-function getDefaultTimeinSeconds() {
-  return times[timer.pomodoroStatus];
+function timerCycle() {
+  timer.time--;
+  if (timer.time < 0) {
+    resetTimer();
+    if (autoResume) {
+      finishCycle();
+    }
+  }
 }
 
 function finishCycle() {
@@ -148,6 +134,16 @@ function finishCycle() {
     timer.pomodoroStatus = 0;
   }
   startTimer(getDefaultTimeinSeconds());
+}
+
+function getDefaultTimeinSeconds() {
+  return times[timer.pomodoroStatus];
+}
+
+function openConnection() {
+  port = chrome.runtime.connect({ name: "timer" });
+  if (port) portConnected = true;
+  port.onDisconnect.addListener(() => (portConnected = false));
 }
 
 function requestNotification() {
@@ -177,8 +173,8 @@ function retrieveUserSettings() {
     times = settings
       ? [settings.work, settings.rest, settings.long]
       : [25 * 60, 5 * 60, 10 * 60];
-    workCycleLimit = settings.workCycle | 4;
-    autoResume = settings.autoResume | true;
-    notificationTurned = settings.notifications | true;
+    workCycleLimit = settings ? settings.workCycle : 4;
+    autoResume = settings ? settings.autoResume : true;
+    notificationTurned = settings ? settings.notifications : true;
   });
 }
