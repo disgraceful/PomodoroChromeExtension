@@ -1,7 +1,12 @@
 <template>
   <v-card tile>
     <v-toolbar color="#FFA726" elevation="2">
-      <v-tabs background-color="transparent" grow color="#444" v-model="status">
+      <v-tabs
+        background-color="transparent"
+        color="#444"
+        fixed-tabs
+        v-model="status"
+      >
         <v-tab @click="setStatus(0)">Work</v-tab>
         <v-tab @click="setStatus(1)">Break</v-tab>
         <v-tab @click="setStatus(2)">Long break</v-tab>
@@ -16,9 +21,12 @@
               <v-card-text
                 :key="`time-${activeTime}`"
                 class="display-2 font-weight-light pb-0"
-              >{{updateTime}}</v-card-text>
+                >{{ updateTime }}</v-card-text
+              >
             </v-fade-transition>
-            <v-card-text class="title font-weight-light pa-2">{{getStatus}}</v-card-text>
+            <v-card-text class="title font-weight-light pa-2">{{
+              getStatus
+            }}</v-card-text>
           </div>
         </v-tab-item>
       </v-tabs-items>
@@ -26,7 +34,7 @@
       <v-row justify="center">
         <v-col cols="auto" class="px-3" style="position:relative">
           <v-tooltip top content-class="tooltip">
-            <template v-slot:activator="{on}">
+            <template v-slot:activator="{ on }">
               <v-fab-transition>
                 <v-btn
                   v-show="!fabHidden"
@@ -38,16 +46,18 @@
                   v-on="on"
                   @click="startTimer()"
                 >
-                  <v-icon v-text="isTimerActive? 'mdi-pause': 'mdi-play'"></v-icon>
+                  <v-icon
+                    v-text="isTimerActive ? 'mdi-pause' : 'mdi-play'"
+                  ></v-icon>
                 </v-btn>
               </v-fab-transition>
             </template>
-            <span v-text="isTimerActive?'Pause': 'Start'"></span>
+            <span v-text="isTimerActive ? 'Pause' : 'Start'"></span>
           </v-tooltip>
         </v-col>
         <v-col cols="auto" class="px-3">
           <v-tooltip top content-class="tooltip">
-            <template v-slot:activator="{on}">
+            <template v-slot:activator="{ on }">
               <v-fab-transition>
                 <v-btn
                   v-show="!fabHidden"
@@ -68,7 +78,7 @@
         </v-col>
         <v-col cols="auto" class="px-3">
           <v-tooltip top content-class="tooltip">
-            <template v-slot:activator="{on}">
+            <template v-slot:activator="{ on }">
               <v-fab-transition>
                 <v-btn
                   v-show="!fabHidden"
@@ -102,7 +112,7 @@ export default {
       isTimerActive: false,
       status: 0,
       cycle: 0,
-      fabHidden: true
+      fabHidden: true,
     };
   },
   computed: {
@@ -110,13 +120,13 @@ export default {
       return this.status === 0
         ? `Working session #${this.cycle + 1}`
         : "Resting";
-    }
+    },
   },
   methods: {
     startTimer() {
       this.isTimerActive = !this.isTimerActive;
       chrome.runtime.sendMessage({
-        event: this.isTimerActive ? "start" : "pause"
+        event: this.isTimerActive ? "start" : "pause",
       });
     },
 
@@ -134,19 +144,19 @@ export default {
     },
 
     getBackgroundTime() {
-      chrome.runtime.sendMessage({ event: "get" }, response => {
+      chrome.runtime.sendMessage({ event: "get" }, (response) => {
         this.isTimerActive = response.state == 1;
         this.activeTime = response.time;
         this.status = response.status;
       });
-    }
+    },
   },
 
   created() {
     this.getBackgroundTime();
     chrome.runtime.sendMessage({ event: "reopen" });
-    chrome.runtime.onConnect.addListener(port => {
-      port.onMessage.addListener(request => {
+    chrome.runtime.onConnect.addListener((port) => {
+      port.onMessage.addListener((request) => {
         this.isTimerActive = request.state == 1;
         this.activeTime = request.time;
         this.status = request.status;
@@ -157,7 +167,7 @@ export default {
 
   mounted() {
     this.fabHidden = false;
-  }
+  },
 };
 </script>
 

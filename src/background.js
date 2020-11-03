@@ -1,4 +1,4 @@
-chrome.runtime.onInstalled.addListener(function(request, sender, sendResponse) {
+chrome.runtime.onInstalled.addListener(function (request, sender, sendResponse) {
   requestNotification();
 });
 let timerId = null;
@@ -15,7 +15,7 @@ let permissionStatus = false;
 let notificationTurned = false;
 
 const messenger = {
-  set: function(target, property, value) {
+  set: function (target, property, value) {
     target[property] = value;
     if (portConnected) {
       const msg = {
@@ -43,36 +43,42 @@ const timer = new Proxy(
 retrieveUserSettings();
 requestNotification();
 
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-  if (request.event === "start" && !timerId) {
-    console.log("Starting timer");
-    startTimer(getDefaultTimeinSeconds());
-  } else if (request.event === "start") {
-    console.log("Continuing timer");
-    resumeTimer();
-  } else if (request.event === "pause") {
-    console.log("Pauseing timer");
-    pauseTimer();
-  } else if (request.event === "reopen") {
-    console.log("Reopening connection");
-    openConnection();
-  } else if (request.event === "reset") {
-    console.log("Resetting timer");
-    resetTimer();
-  } else if (request.event === "get") {
-    const time = timer.state === 0 ? getDefaultTimeinSeconds() : timer.time | 0;
-    sendResponse({
-      time: time,
-      state: timer.state,
-      status: timer.pomodoroStatus,
-    });
-  } else if (request.event === "status" && !isNaN(request.status)) {
-    timer.pomodoroStatus = request.status;
-    timer.workCycle = 0;
-    timer.time = getDefaultTimeinSeconds();
-    resetTimer();
-  } else if (request.event === "saved") {
-    retrieveUserSettings();
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+  try {
+
+
+    if (request.event === "start" && !timerId) {
+      console.log("Starting timer");
+      startTimer(getDefaultTimeinSeconds());
+    } else if (request.event === "start") {
+      console.log("Continuing timer");
+      resumeTimer();
+    } else if (request.event === "pause") {
+      console.log("Pauseing timer");
+      pauseTimer();
+    } else if (request.event === "reopen") {
+      console.log("Reopening connection");
+      openConnection();
+    } else if (request.event === "reset") {
+      console.log("Resetting timer");
+      resetTimer();
+    } else if (request.event === "get") {
+      const time = timer.state === 0 ? getDefaultTimeinSeconds() : timer.time | 0;
+      sendResponse({
+        time: time,
+        state: timer.state,
+        status: timer.pomodoroStatus,
+      });
+    } else if (request.event === "status" && !isNaN(request.status)) {
+      timer.pomodoroStatus = request.status;
+      timer.workCycle = 0;
+      timer.time = getDefaultTimeinSeconds();
+      resetTimer();
+    } else if (request.event === "saved") {
+      retrieveUserSettings();
+    }
+  } catch (error) {
+    console.log(error);
   }
 });
 
@@ -92,7 +98,7 @@ function pauseTimer() {
 
 function resumeTimer() {
   if (timer.state != 2) return;
-  window.setTimeout(function() {
+  window.setTimeout(function () {
     timerCycle();
     initTime = new Date();
     timerId = window.setInterval(timerCycle, interval);
@@ -146,7 +152,7 @@ function openConnection() {
 }
 
 function requestNotification() {
-  chrome.notifications.getPermissionLevel(function(permission) {
+  chrome.notifications.getPermissionLevel(function (permission) {
     permissionStatus = permission === "granted" && notificationTurned;
   });
 }
@@ -166,7 +172,7 @@ function createNotification() {
 }
 
 function retrieveUserSettings() {
-  chrome.storage.sync.get("settings", function(result) {
+  chrome.storage.sync.get("settings", function (result) {
     console.log(result);
     const settings = result.settings;
     times = settings
